@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Bluey Runs Everywhere!</title>
+<style>
+  body {
+    margin: 0;
+    overflow: hidden;
+    height: 100vh;
+    background: linear-gradient(#a8d8ff, #ffffff);
+    position: relative;
+    cursor: pointer;
+  }
+
+  #bluey {
+    position: absolute;
+    width: 150px;
+    transition: transform 0.5s ease, left 1.5s linear, top 1.5s linear;
+    user-select: none;
+  }
+
+  .sparkle {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,0,0.3) 70%, transparent 100%);
+    border-radius: 50%;
+    pointer-events: none;
+    animation: sparkle 0.8s ease-out forwards;
+  }
+
+  @keyframes sparkle {
+    from { transform: scale(0.3); opacity: 1; }
+    to { transform: scale(1.5); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+  <!-- Working Bluey transparent PNG -->
+  <img id="bluey" src="bluey.gif" alt="Bluey" />
+
+  <!-- Bark sound -->
+  <audio id="bark-sound" src="sparkle.mp3" preload="auto"></audio>
+
+  <script>
+    const bluey = document.getElementById('bluey');
+    const barkSound = document.getElementById('bark-sound');
+    let facingRight = true;
+
+    document.body.addEventListener('click', (event) => {
+      const clickX = event.clientX;
+      const clickY = event.clientY;
+      const currentX = bluey.offsetLeft;
+      const currentY = bluey.offsetTop;
+
+      // Flip Bluey if needed
+      if (clickX < currentX && facingRight) {
+        bluey.style.transform = 'scaleX(-1)';
+        facingRight = false;
+      } else if (clickX >= currentX && !facingRight) {
+        bluey.style.transform = 'scaleX(1)';
+        facingRight = true;
+      }
+
+      // Move Bluey toward the clicked point
+      bluey.style.left = clickX - bluey.width / 2 + 'px';
+      bluey.style.top = clickY - bluey.height / 2 + 'px';
+
+      // After animation ends, play sound + sparkle
+      setTimeout(() => {
+        barkSound.currentTime = 0;
+        barkSound.play();
+
+        const sparkle = document.createElement('div');
+        sparkle.className = 'sparkle';
+        sparkle.style.left = clickX - 30 + 'px';
+        sparkle.style.top = clickY - 30 + 'px';
+        document.body.appendChild(sparkle);
+        setTimeout(() => sparkle.remove(), 800);
+      }, 1500); // matches travel duration
+    });
+  </script>
+</body>
+</html>
+
