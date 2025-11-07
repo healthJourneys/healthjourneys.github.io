@@ -2,86 +2,216 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Bluey Runs Everywhere!</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Life Journeys Survey</title>
+
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '1585069116237193');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=1585069116237193&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
+
 <style>
-  body {
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+
+  html, body {
     margin: 0;
+    height: 100%;
+    overflow-x: hidden;
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+    background: #000; /* matches .app background */
+  }
+
+  /* ===== feeling lines background ===== */
+  .lines-bg {
+    position: fixed;
+    inset: 0;
     overflow: hidden;
-    height: 100vh;
-    background: linear-gradient(#a8d8ff, #ffffff);
+    z-index: 0;
+    background: #000;
+  }
+
+  .line {
+    --line-color: #ffffff;
+    --dur: 4000ms;
+
+    position: absolute;
+    left: -25%;
+    width: 150%;
+    border-radius: 12px;
+    background: var(--line-color);
+    opacity: 0.85;
+
+    animation: travel var(--dur) ease-in-out forwards,
+               pulse calc(var(--dur) * 0.35) ease-in-out 1;
+    box-shadow: 0 0 8px var(--line-color), 0 0 16px #ffffff88;
+    filter: brightness(1.05);
+  }
+
+  @keyframes travel {
+    0%   { transform: translateX(-100%); opacity: 0; filter: brightness(1) blur(0.3px); }
+    20%  { transform: translateX(-20%);  opacity: 1; filter: brightness(1.15) blur(0.5px); }
+    50%  { transform: translateX(25%);   opacity: 0.95; }
+    100% { transform: translateX(100%);  opacity: 0; filter: brightness(0.9) blur(0.6px); }
+  }
+  @keyframes pulse {
+    0%   { transform: translateX(-100%) scaleY(1); }
+    40%  { transform: translateX(-35%)  scaleY(1.9); }
+    70%  { transform: translateX(5%)    scaleY(1.2); }
+    100% { transform: translateX(25%)   scaleY(1); }
+  }
+
+  /* Respect reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .line { animation: none !important; opacity: 0.12; }
+  }
+
+  /* ===== page content (above lines) ===== */
+  .page-wrap {
     position: relative;
-    cursor: pointer;
+    z-index: 1;
+    min-height: 100svh;
+    display: grid;
+    place-items: start center;
+    padding: 24px 12px 48px;
   }
 
-  #bluey {
-    position: absolute;
-    width: 150px;
-    transition: transform 0.5s ease, left 1.5s linear, top 1.5s linear;
-    user-select: none;
+  .content {
+    width: 100%;
+    max-width: 960px;
   }
 
-  .sparkle {
-    position: absolute;
-    width: 60px;
-    height: 60px;
-    background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,0,0.3) 70%, transparent 100%);
-    border-radius: 50%;
-    pointer-events: none;
-    animation: sparkle 0.8s ease-out forwards;
+  .header {
+    text-align: center;
+    color: #f5f5f5;
+    margin-bottom: 16px;
+  }
+  .header h1 {
+    margin: 0 0 6px;
+    font-size: 1.75rem;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+  }
+  .header p {
+    margin: 0;
+    opacity: 0.8;
   }
 
-  @keyframes sparkle {
-    from { transform: scale(0.3); opacity: 1; }
-    to { transform: scale(1.5); opacity: 0; }
+  /* Responsive Google Form wrapper */
+  .iframe-shell {
+    position: relative;
+    width: 100%;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #0a0a0a;
+    box-shadow: 0 20px 60px rgba(255,255,255,0.06), 0 2px 10px rgba(0,0,0,0.6);
+  }
+
+  /* fixed-height approach (cross-origin forms can’t auto-resize) */
+  .iframe-shell iframe {
+    display: block;
+    width: 100%;
+    height: 80svh; /* good default; scrolls inside on mobile */
+    border: 0;
+    background: #111;
+  }
+
+  /* Taller on large screens */
+  @media (min-width: 1024px) {
+    .iframe-shell iframe { height: 85vh; }
+  }
+
+  .footer {
+    color: #bbb;
+    text-align: center;
+    margin-top: 14px;
+    font-size: 0.9rem;
   }
 </style>
 </head>
 <body>
-  <!-- Working Bluey transparent PNG -->
-  <img id="bluey" src="bluey.gif" alt="Bluey" />
 
-  <!-- Bark sound -->
-  <audio id="bark-sound" src="sparkle.mp3" preload="auto"></audio>
+  <!-- Background lines (no button, no overlay, no text) -->
+  <div class="lines-bg" id="lines"></div>
 
-  <script>
-    const bluey = document.getElementById('bluey');
-    const barkSound = document.getElementById('bark-sound');
-    let facingRight = true;
+  <!-- Foreground content -->
+  <main class="page-wrap">
+    <div class="content">
+      <div class="header">
+        <h1>Life Journeys Survey</h1>
+        <p>Share your experience—your voice shapes what we build.</p>
+      </div>
 
-    document.body.addEventListener('click', (event) => {
-      const clickX = event.clientX;
-      const clickY = event.clientY;
-      const currentX = bluey.offsetLeft;
-      const currentY = bluey.offsetTop;
+      <div class="iframe-shell">
+        <iframe
+          src="https://docs.google.com/forms/d/e/1FAIpQLSeqmaLB96fw4MYwKSZnwi6wHylYwJjCtZdE8807E8TRMzwZSg/viewform?embedded=true"
+          allowfullscreen
+          referrerpolicy="no-referrer-when-downgrade">
+          Loading…
+        </iframe>
+      </div>
 
-      // Flip Bluey if needed
-      if (clickX < currentX && facingRight) {
-        bluey.style.transform = 'scaleX(-1)';
-        facingRight = false;
-      } else if (clickX >= currentX && !facingRight) {
-        bluey.style.transform = 'scaleX(1)';
-        facingRight = true;
-      }
+      <div class="footer">© 2025 Life Journeys Project</div>
+    </div>
+  </main>
 
-      // Move Bluey toward the clicked point
-      bluey.style.left = clickX - bluey.width / 2 + 'px';
-      bluey.style.top = clickY - bluey.height / 2 + 'px';
+<script>
+  // ===== same palette & spawn cadence as your React version (warm-biased) =====
+  const warm = [
+    "#FFD700", "#50C878", "#40E0D0", "#FF7F50", "#FFFFF0",
+    "#F5DEB3", "#FFDAB9", "#D2B48C", "#F4A460"
+  ];
+  const cool = [
+    "#1A237E", "#757575", "#6A5ACD", "#2F2F2F", "#B0BEC5",
+    "#B2AC88", "#87CEEB", "#708090", "#0047AB", "#228B22",
+    "#5F9EA0", "#A9A9A9"
+  ];
 
-      // After animation ends, play sound + sparkle
-      setTimeout(() => {
-        barkSound.currentTime = 0;
-        barkSound.play();
+  function weightedPick(warmBias = 0.7) {
+    const pool = Math.random() < warmBias ? warm : cool;
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
 
-        const sparkle = document.createElement('div');
-        sparkle.className = 'sparkle';
-        sparkle.style.left = clickX - 30 + 'px';
-        sparkle.style.top = clickY - 30 + 'px';
-        document.body.appendChild(sparkle);
-        setTimeout(() => sparkle.remove(), 800);
-      }, 1500); // matches travel duration
-    });
-  </script>
+  const container = document.getElementById('lines');
+
+  function spawnLine() {
+    const el = document.createElement('div');
+    el.className = 'line';
+    const dur = 3600 + Math.floor(Math.random() * 1200);   // 3.6–4.8s
+    const top = Math.floor(Math.random() * window.innerHeight) + 'px';
+    const height = (5 + Math.floor(Math.random() * 6)) + 'px'; // 5–10px
+
+    el.style.setProperty('--line-color', weightedPick());
+    el.style.setProperty('--dur', dur + 'ms');
+    el.style.top = top;
+    el.style.height = height;
+
+    container.appendChild(el);
+    setTimeout(() => el.remove(), dur + 100);
+  }
+
+  // Steady cadence (~every 450ms)
+  let timer = setInterval(spawnLine, 450);
+
+  // Pause when tab hidden to save CPU
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { clearInterval(timer); }
+    else { timer = setInterval(spawnLine, 450); }
+  });
+</script>
+
 </body>
 </html>
-
